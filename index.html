@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Paint</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+
+<body>
+
+    <main class="app">
+
+        <section class="canvas-area">
+
+            <canvas
+                id="canvas"
+                width="800"
+                height="600">
+            </canvas>
+
+        </section>
+
+
+        <aside class="sidebar">
+
+            <section class="panel">
+
+                <h2>Colors</h2>
+
+                <div id="color-selector"></div>
+
+            </section>
+
+
+            <section class="panel">
+
+                <h2>Tools</h2>
+
+                <div id="tool-selector"></div>
+
+
+                <label for="tool-size">
+                    Size
+                </label>
+
+                <input
+                    id="tool-size"
+                    type="range"
+                    min="1"
+                    max="30"
+                    value="1">
+
+
+                <button
+                    id="clear-button"
+                    class="tool-button">
+                    Erase all
+                </button>
+
+            </section>
+
+        </aside>
+
+    </main>
+
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
