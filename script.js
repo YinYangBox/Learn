@@ -730,6 +730,53 @@ function createNewData(event) {
 }
 
 
+function getCanvasCoordinates(event) {
+    const rect = UI.CANVAS.getBoundingClientRect();
+    const scaleX = UI.CANVAS.width / rect.width;
+    const scaleY = UI.CANVAS.height / rect.height;
+
+    const x = (event.clientX - rect.left) * scaleX;
+    const y = (event.clientY - rect.top) * scaleY;
+
+    return {
+        x: Math.min(
+            Math.max(
+                Math.round(x),
+                0
+            ),
+            UI.CANVAS.width - 1
+        ),
+        y: Math.min(
+            Math.max(
+                Math.round(y),
+                0
+            ),
+            UI.CANVAS.height - 1
+        )
+    };
+}
+
+
+function normalizePointerEvent(event) {
+    if (
+        typeof event.offsetX === "number" &&
+        typeof event.offsetY === "number"
+    ) {
+        return event;
+    }
+
+    const point = getCanvasCoordinates(event);
+
+    return {
+        ...event,
+        offsetX: point.x,
+        offsetY: point.y,
+        clientX: point.x,
+        clientY: point.y
+    };
+}
+
+
 function colorToCSS(color) {
 
     return `rgba(
@@ -976,9 +1023,11 @@ class App {
             return;
         }
 
+        const normalizedEvent =
+            normalizePointerEvent(event);
 
         const NEW_DATA =
-            createNewData(event);
+            createNewData(normalizedEvent);
 
 
         if (
@@ -994,27 +1043,28 @@ class App {
 
 
         canvas.x =
-            event.offsetX;
+            normalizedEvent.offsetX;
 
         canvas.y =
-            event.offsetY;
+            normalizedEvent.offsetY;
     }
 
 
     static addEventListeners() {
 
         UI.CANVAS.addEventListener(
-            "mousedown",
+            "pointerdown",
             (e) => {
+                e.preventDefault();
 
-                canvas.x =
-                    e.offsetX;
+                UI.CANVAS.setPointerCapture?.(e.pointerId);
 
-                canvas.y =
-                    e.offsetY;
+                const point = getCanvasCoordinates(e);
 
-                canvas.isDrawing =
-                    true;
+                canvas.x = point.x;
+                canvas.y = point.y;
+
+                canvas.isDrawing = true;
 
                 App.executeTool(e);
             }
@@ -1048,20 +1098,20 @@ class App {
 
 
         UI.CANVAS.addEventListener(
-            "mousemove",
+            "pointermove",
             (e) => {
-
                 if (!canvas.isDrawing) {
                     return;
                 }
 
+                e.preventDefault();
                 App.executeTool(e);
             }
         );
 
 
         UI.CANVAS.addEventListener(
-            "mouseleave",
+            "pointerleave",
             () => {
 
                 canvas.x = null;
@@ -1071,28 +1121,40 @@ class App {
 
 
         UI.CANVAS.addEventListener(
-            "mouseenter",
+            "pointerenter",
             (e) => {
 
                 if (canvas.isDrawing) {
+                    const point = getCanvasCoordinates(e);
 
-                    canvas.x =
-                        e.offsetX;
-
-                    canvas.y =
-                        e.offsetY;
+                    canvas.x = point.x;
+                    canvas.y = point.y;
                 }
             }
         );
 
 
         window.addEventListener(
-            "mouseup",
-            () => {
+            "pointerup",
+            (e) => {
+                if (canvas.isDrawing) {
+                    UI.CANVAS.releasePointerCapture?.(e.pointerId);
+                }
 
-                canvas.isDrawing =
-                    false;
+                canvas.isDrawing = false;
+                canvas.x = null;
+                canvas.y = null;
+            }
+        );
 
+        window.addEventListener(
+            "pointercancel",
+            (e) => {
+                if (canvas.isDrawing) {
+                    UI.CANVAS.releasePointerCapture?.(e.pointerId);
+                }
+
+                canvas.isDrawing = false;
                 canvas.x = null;
                 canvas.y = null;
             }
